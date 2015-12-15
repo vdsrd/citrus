@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.consol.citrus.ws.message;
 
 import com.consol.citrus.CitrusConstants;
@@ -34,350 +33,426 @@ import java.nio.charset.Charset;
 
 /**
  * Citrus SOAP attachment implementation.
- * 
+ *
  * @author Christoph Deppisch
  */
 public class SoapAttachment implements Attachment, Serializable {
 
-    /** Serial */
-    private static final long serialVersionUID = 6277464458242523954L;
+	/**
+	 * Serial
+	 */
+	private static final long serialVersionUID = 6277464458242523954L;
 
-    public static final String ENCODING_BASE64_BINARY = "base64Binary";
-    public static final String ENCODING_HEX_BINARY = "hexBinary";
+	public static final String ENCODING_BASE64_BINARY = "base64Binary";
+	public static final String ENCODING_HEX_BINARY = "hexBinary";
 
-    /** Content body as string */
-    private String content = null;
+	/**
+	 * Content body as string
+	 */
+	private String content = null;
 
-    /** Content body as file resource path  */
-    private String contentResourcePath;
+	/**
+	 * Content body as file resource path
+	 */
+	private String contentResourcePath;
 
-    /** Content type */
-    private String contentType = "text/plain";
-    
-    /** Content identifier */
-    private String contentId = null;
-    
-    /** Chosen charset of content body */
-    private String charsetName = "UTF-8";
-    
-    /** send mtom attachments inline as hex or base64 coded */
-    private boolean mtomInline = false;
-    
-    /** Content data handler */
-    private DataHandler dataHandler = null;
-    
-    /** Optional MTOM encoding */
-    private String encodingType = ENCODING_BASE64_BINARY;
+	/**
+	 * Content type
+	 */
+	private String contentType = "text/plain";
 
-    /**
-     * Default constructor
-     */
-    public SoapAttachment() {
-    }
+	/**
+	 * Content identifier
+	 */
+	private String contentId = null;
 
-    /**
-     * Static construction method from Spring mime attachment.
-     * @param attachment
-     * @return
-     */
-    public static SoapAttachment from(Attachment attachment) {
-        SoapAttachment soapAttachment = new SoapAttachment();
-        soapAttachment.setContentId(attachment.getContentId());
-        soapAttachment.setContentType(attachment.getContentType());
+	/**
+	 * Chosen charset of content body
+	 */
+	private String charsetName = "UTF-8";
 
-        if (attachment.getContentType().startsWith("text")) {
-            try {
-                soapAttachment.setContent(FileUtils.readToString(attachment.getInputStream()).trim());
-            } catch (IOException e) {
-                throw new CitrusRuntimeException("Failed to read SOAP attachment content", e);
-            }
-        } else {
-            // Binary content
-            soapAttachment.setDataHandler(attachment.getDataHandler());
-        }
+	/**
+	 * send mtom attachments inline as hex or base64 coded
+	 */
+	private boolean mtomInline = false;
 
-        soapAttachment.setCharsetName(System.getProperty(CitrusConstants.CITRUS_FILE_ENCODING,
-                Charset.defaultCharset().displayName()));
+	/**
+	 * Content data handler
+	 */
+	private DataHandler dataHandler = null;
 
-        return soapAttachment;
-    }
+	/**
+	 * Optional MTOM encoding
+	 */
+	private String encodingType = ENCODING_BASE64_BINARY;
 
-    /**
-     * Constructor using fields.
-     * @param content
-     */
-    public SoapAttachment(String content) {
-        this.content = content;
-    }
+	/**
+	 * Resolved content string
+	 */
+	private String resolvedContent = null;
 
-    @Override
-    public String getContentId() {
-        return contentId;
-    }
+	/**
+	 * Default constructor
+	 */
+	public SoapAttachment() {
+	}
 
-    @Override
-    public String getContentType() {
-        return contentType;
-    }
+	/**
+	 * Static construction method from Spring mime attachment.
+	 *
+	 * @param attachment
+	 * @return
+	 */
+	public static SoapAttachment from(Attachment attachment) {
+		SoapAttachment soapAttachment = new SoapAttachment();
+		soapAttachment.setContentId(attachment.getContentId());
+		soapAttachment.setContentType(attachment.getContentType());
 
-    @Override
-    public DataHandler getDataHandler() {
-        if (dataHandler == null) {
-            if (StringUtils.hasText(contentResourcePath)) {
-                dataHandler = new DataHandler(new FileResourceDataSource());
-            } else {
-                dataHandler = new DataHandler(new ContentDataSource());
-            }
-        }
+		if (attachment.getContentType().startsWith("text")) {
+			try {
+				soapAttachment.setContent(FileUtils.readToString(attachment.getInputStream()).trim());
+			} catch (IOException e) {
+				throw new CitrusRuntimeException("Failed to read SOAP attachment content", e);
+			}
+		} else {
+			// Binary content
+			soapAttachment.setDataHandler(attachment.getDataHandler());
+		}
 
-        return dataHandler;
-    }
+		soapAttachment.setCharsetName(System.getProperty(CitrusConstants.CITRUS_FILE_ENCODING,
+				Charset.defaultCharset().displayName()));
 
-    /**
-     * Sets the data handler.
-     * @param dataHandler
-     */
-    public void setDataHandler(DataHandler dataHandler) {
-        this.dataHandler = dataHandler;
-    }
+		return soapAttachment;
+	}
 
-    @Override
-    public InputStream getInputStream() throws IOException {
-        return getDataHandler().getInputStream();
-    }
+	/**
+	 * Constructor using fields.
+	 *
+	 * @param content
+	 */
+	public SoapAttachment(String content) {
+		this.content = content;
+	}
 
-    @Override
-    public long getSize() {
-        try {
-            if (content != null) {
-                return content.getBytes(charsetName).length;
-            } else {
-                return getSizeOfContent(getDataHandler().getInputStream());
-            }
-        } catch (UnsupportedEncodingException e) {
-            throw new CitrusRuntimeException(e);
-        } catch (IOException ioe) {
-            throw new CitrusRuntimeException(ioe);
-        }
-    }
+	@Override
+	public String getContentId() {
+		if (dataHandler != null && dataHandler.getName() != null) {
+			return dataHandler.getName();
+		}
+		return contentId;
+	}
 
-    @Override
-    public String toString() {
-        return String.format("%s [contentId: %s, contentType: %s, content: %s]", getClass().getSimpleName().toUpperCase(), contentId, contentType, getContent());
-    }
+	@Override
+	public String getContentType() {
+		if (dataHandler != null && dataHandler.getContentType() != null) {
+			return dataHandler.getContentType();
+		}
+		return contentType;
+	}
 
-    /**
-     * Get the content body.
-     * @return the content
-     */
-    public String getContent() {
-        if (StringUtils.hasText(content)) {
-            return content;
-        } else if (StringUtils.hasText(contentResourcePath) && contentType.startsWith("text")) {
-            try {
-                return FileUtils.readToString(new PathMatchingResourcePatternResolver().getResource(contentResourcePath).getInputStream(), Charset.forName(charsetName));
-            } catch (IOException e) {
-                throw new CitrusRuntimeException("Failed to read SOAP attachment file resource", e);
-            }
-        } else {
-            try {
-                byte[] binaryData = FileUtils.readToString(getDataHandler().getInputStream(), Charset.forName(charsetName)).getBytes(Charset.forName(charsetName));
-                if (encodingType.equals(SoapAttachment.ENCODING_BASE64_BINARY)) {
-                    return Base64.encodeBase64String(binaryData);
-                } else if (encodingType.equals(SoapAttachment.ENCODING_HEX_BINARY)) {
-                    return Hex.encodeHexString(binaryData).toUpperCase();
-                } else {
-                    throw new CitrusRuntimeException(String.format("Unsupported encoding type '%s' for SOAP attachment - choose one of %s or %s",
-                            encodingType, SoapAttachment.ENCODING_BASE64_BINARY, SoapAttachment.ENCODING_HEX_BINARY));
-                }
-            } catch (IOException e) {
-                throw new CitrusRuntimeException("Failed to read SOAP attachment data input stream", e);
-            }
-        }
-    }
+	@Override
+	public DataHandler getDataHandler() {
+		if (dataHandler == null) {
+			if (StringUtils.hasText(contentResourcePath)) {
+				dataHandler = new DataHandler(new FileResourceDataSource(contentType, contentResourcePath));
+			} else {
+				dataHandler = new DataHandler(new ContentDataSource(contentType, content, charsetName, contentId));
+			}
+		}
 
-    /**
-     * Set the content body.
-     * @param content the content to set
-     */
-    public void setContent(String content) {
-        this.content = content;
-    }
+		return dataHandler;
+	}
 
-    /**
-     * Get the content file resource path.
-     * @return the content resource path
-     */
-    public String getContentResourcePath() {
-        return contentResourcePath;
-    }
+	/**
+	 * Sets the data handler.
+	 *
+	 * @param dataHandler
+	 */
+	public void setDataHandler(DataHandler dataHandler) {
+		this.dataHandler = dataHandler;
+	}
 
-    /**
-     * Set the content file resource path.
-     * @param path the content resource path to set
-     */
-    public void setContentResourcePath(String path) {
-        this.contentResourcePath = path;
-    }
+	@Override
+	public InputStream getInputStream() throws IOException {
+		return getDataHandler().getInputStream();
+	}
 
-    /**
-     * Get the charset name.
-     * @return the charsetName
-     */
-    public String getCharsetName() {
-        return charsetName;
-    }
+	@Override
+	public long getSize() {
+		try {
+			return getSizeOfContent(getDataHandler().getInputStream());
+		} catch (UnsupportedEncodingException e) {
+			throw new CitrusRuntimeException(e);
+		} catch (IOException ioe) {
+			throw new CitrusRuntimeException(ioe);
+		}
+	}
 
-    /**
-     * Set the charset name.
-     * @param charsetName the charsetName to set
-     */
-    public void setCharsetName(String charsetName) {
-        this.charsetName = charsetName;
-    }
+	@Override
+	public String toString() {
+		return String.format("%s [contentId: %s, contentType: %s, content: %s]", getClass().getSimpleName().toUpperCase(), contentId, contentType, getContent());
+	}
 
-    /**
-     * Set the content type.
-     * @param contentType the contentType to set
-     */
-    public void setContentType(String contentType) {
-        this.contentType = contentType;
-    }
+	/**
+	 * Get the content body.
+	 *
+	 * @return the content
+	 */
+	public String getContent() {
+		if (resolvedContent != null) {
+			return resolvedContent;
+		}
 
-    /**
-     * Set the content id.
-     * @param contentId the contentId to set
-     */
-    public void setContentId(String contentId) {
-        this.contentId = contentId;
-    }
+		if (StringUtils.hasText(content)) {
+			return content;
+		}
+		
+		if (getDataHandler().getContentType().startsWith("text")) {
+			try {
+				return FileUtils.readToString(getDataHandler().getInputStream(), Charset.forName(charsetName));
+			} catch (IOException e) {
+				throw new CitrusRuntimeException("Failed to read SOAP attachment file resource", e);
+			}
+		} else {
+			try {
+				byte[] binaryData = FileUtils.readToString(getDataHandler().getInputStream(), Charset.forName(charsetName)).getBytes(Charset.forName(charsetName));
+				switch (encodingType) {
+					case SoapAttachment.ENCODING_BASE64_BINARY:
+						return Base64.encodeBase64String(binaryData);
+					case SoapAttachment.ENCODING_HEX_BINARY:
+						return Hex.encodeHexString(binaryData).toUpperCase();
+					default:
+						throw new CitrusRuntimeException(String.format("Unsupported encoding type '%s' for SOAP attachment - choose one of %s or %s",
+								encodingType, SoapAttachment.ENCODING_BASE64_BINARY, SoapAttachment.ENCODING_HEX_BINARY));
+				}
+			} catch (IOException e) {
+				throw new CitrusRuntimeException("Failed to read SOAP attachment data input stream", e);
+			}
+		}
+	}
 
-    /**
-     * Set mtom inline
-     * @param inline
-     */
-    public void setMtomInline(boolean inline) {
-        this.mtomInline = inline;
-    }
+	/**
+	 * Set the content body.
+	 *
+	 * @param content the content to set
+	 */
+	public void setContent(String content) {
+		this.content = content;
+	}
 
-    /**
-     * Get mtom inline
-     * @return
-     */
-    public boolean isMtomInline() {
-        return this.mtomInline;
-    }
+	/**
+	 * Get the content file resource path.
+	 *
+	 * @return the content resource path
+	 */
+	public String getContentResourcePath() {
+		return contentResourcePath;
+	}
 
-    /**
-     * Gets the attachment encoding type.
-     * @return
-     */
-    public String getEncodingType() {
-        return encodingType;
-    }
+	/**
+	 * Set the content file resource path.
+	 *
+	 * @param path the content resource path to set
+	 */
+	public void setContentResourcePath(String path) {
+		this.contentResourcePath = path;
+	}
 
-    /**
-     * Sets the attachment encoding type.
-     * @param encodingType
-     */
-    public void setEncodingType(String encodingType) {
-        this.encodingType = encodingType;
-    }
-    
-    /**
-     * Resolve dynamic string content in attachment
-     * @param context Test context used to resolve dynamic content
-     */
-    public void resolveDynamicContent(TestContext context) {
-        // handle variables in content id
-        if (contentId != null) {
-            contentId = context.replaceDynamicContentInString(contentId);
-        }
+	/**
+	 * Get the charset name.
+	 *
+	 * @return the charsetName
+	 */
+	public String getCharsetName() {
+		return charsetName;
+	}
 
-        // handle variables in content type
-        if (contentType != null) {
-            contentType = context.replaceDynamicContentInString(contentType);
-        }
+	/**
+	 * Set the charset name.
+	 *
+	 * @param charsetName the charsetName to set
+	 */
+	public void setCharsetName(String charsetName) {
+		this.charsetName = charsetName;
+	}
 
-        if (StringUtils.hasText(content)) {
-            content = context.replaceDynamicContentInString(content);
-        } else if (contentResourcePath != null) {
-            contentResourcePath = context.replaceDynamicContentInString(contentResourcePath);
+	/**
+	 * Set the content type.
+	 *
+	 * @param contentType the contentType to set
+	 */
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
+	}
 
-            if (contentType.startsWith("text")) {
-                try {
-                    content = context.replaceDynamicContentInString(FileUtils.readToString(new PathMatchingResourcePatternResolver().getResource(contentResourcePath).getInputStream(), Charset.forName(charsetName)));
-                } catch (IOException e) {
-                    throw new CitrusRuntimeException("Failed to read SOAP attachment file resource", e);
-                }
-            }
-        }
-    }
-    
-    /**
-     * Get size in bytes of the given input stream
-     * @param is Read all data from stream to calculate size of the stream
-     */
-    private static long getSizeOfContent(InputStream is) throws IOException {
-        long size = 0;
-        while (is.read() != -1) {
-            size++;
-        }
-        return size;
-    }
+	/**
+	 * Set the content id.
+	 *
+	 * @param contentId the contentId to set
+	 */
+	public void setContentId(String contentId) {
+		this.contentId = contentId;
+	}
 
-    /**
-     * Data source working on this attachments text content data.
-     */
-    private class ContentDataSource implements DataSource {
-        @Override
-        public InputStream getInputStream() throws IOException {
-            return new ByteArrayInputStream(content.getBytes(charsetName));
-        }
+	/**
+	 * Set mtom inline
+	 *
+	 * @param inline
+	 */
+	public void setMtomInline(boolean inline) {
+		this.mtomInline = inline;
+	}
 
-        @Override
-        public String getContentType() {
-            return contentType;
-        }
+	/**
+	 * Get mtom inline
+	 *
+	 * @return
+	 */
+	public boolean isMtomInline() {
+		return this.mtomInline;
+	}
 
-        @Override
-        public String getName() {
-            return contentId;
-        }
+	/**
+	 * Gets the attachment encoding type.
+	 *
+	 * @return
+	 */
+	public String getEncodingType() {
+		return encodingType;
+	}
 
-        @Override
-        public OutputStream getOutputStream() throws IOException {
-            throw new UnsupportedOperationException();
-        }
-    }
+	/**
+	 * Sets the attachment encoding type.
+	 *
+	 * @param encodingType
+	 */
+	public void setEncodingType(String encodingType) {
+		this.encodingType = encodingType;
+	}
 
-    /**
-     * Data source working on this attachments file resource.
-     */
-    private class FileResourceDataSource implements DataSource {
+	/**
+	 * Resolve dynamic string content in attachment
+	 *
+	 * @param context Test context used to resolve dynamic content
+	 */
+	public void resolveDynamicContent(TestContext context) {
+		resolvedContent = null;
 
-        @Override
-        public InputStream getInputStream() throws IOException {
-            return getFileResource().getInputStream();
-        }
+		final String resolvedContentId = (contentId != null ? context.replaceDynamicContentInString(contentId) : null);
+		final String resolvedContentType = (contentType != null ? context.replaceDynamicContentInString(contentType) : null);
+		final String resolvedCharsetName = (charsetName != null ? context.replaceDynamicContentInString(charsetName) : null);
 
-        @Override
-        public String getContentType() {
-            return contentType;
-        }
+		if (StringUtils.hasText(content)) {
+			resolvedContent = context.replaceDynamicContentInString(content);
+		} else if (contentResourcePath != null) {
+			try {
+				if (resolvedContentType != null && resolvedContentType.startsWith("text/")) {
+					resolvedContent = context.replaceDynamicContentInString(FileUtils.readToString(FileUtils.getFileResource(contentResourcePath, context)));
+				} else {
+					final String resolvedContentResourcePath = context.replaceDynamicContentInString(contentResourcePath);
+					dataHandler = new DataHandler(new FileResourceDataSource(resolvedContentType, resolvedContentResourcePath, resolvedContentId));
+				}
+			} catch (IOException e) {
+				throw new CitrusRuntimeException(e);
+			}
+		}
 
-        @Override
-        public String getName() {
-            return getFileResource().getFilename();
-        }
+		if (resolvedContent != null) {
+			// Text content
+			dataHandler = new DataHandler(new ContentDataSource(resolvedContentType, resolvedContent, resolvedCharsetName, resolvedContentId));
+		}
+	}
 
-        @Override
-        public OutputStream getOutputStream() throws IOException {
-            throw new UnsupportedOperationException();
-        }
+	/**
+	 * Get size in bytes of the given input stream
+	 *
+	 * @param is Read all data from stream to calculate size of the stream
+	 */
+	private static long getSizeOfContent(InputStream is) throws IOException {
+		long size = 0;
+		while (is.read() != -1) {
+			size++;
+		}
+		return size;
+	}
 
-        private Resource getFileResource() {
-            return new PathMatchingResourcePatternResolver().getResource(contentResourcePath);
-        }
-    }
+	/**
+	 * Data source working on this attachments text content data.
+	 */
+	private class ContentDataSource implements DataSource {
+
+		private ContentDataSource(String contentType, String content, String charsetName, String name) {
+			this.contentType = contentType;
+			this.content = content;
+			this.charsetName = charsetName;
+			this.name = name;
+		}
+
+		private final String contentType;
+		private final String name;
+		private final String content;
+		private final String charsetName;
+		
+		@Override
+		public InputStream getInputStream() throws IOException {
+			return new ByteArrayInputStream(content.getBytes(charsetName));
+		}
+
+		@Override
+		public String getContentType() {
+			return contentType;
+		}
+
+		@Override
+		public String getName() {
+			return name;
+		}
+
+		@Override
+		public OutputStream getOutputStream() throws IOException {
+			throw new UnsupportedOperationException();
+		}
+	}
+
+	/**
+	 * Data source working on this attachments file resource.
+	 */
+	private class FileResourceDataSource implements DataSource {
+
+		public FileResourceDataSource(String contentType, String resourcePath) {
+			this.contentType = contentType;
+			this.resource = new PathMatchingResourcePatternResolver().getResource(resourcePath);
+			this.name = resource.getFilename();
+		}
+		
+		public FileResourceDataSource(String contentType, String resourcePath, String name) {
+			this.contentType = contentType;
+			this.resource = new PathMatchingResourcePatternResolver().getResource(resourcePath);
+			this.name = name;
+		}
+
+		private final String contentType;
+		private final String name;
+		private final Resource resource;
+
+		@Override
+		public InputStream getInputStream() throws IOException {
+			return resource.getInputStream();
+		}
+
+		@Override
+		public String getContentType() {
+			return contentType;
+		}
+
+		@Override
+		public String getName() {
+			return name;
+		}
+
+		@Override
+		public OutputStream getOutputStream() throws IOException {
+			throw new UnsupportedOperationException();
+		}
+	}
 }
