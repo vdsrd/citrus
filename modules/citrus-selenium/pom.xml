@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+	  <artifactId>citrus</artifactId>
+	  <groupId>com.consol.citrus</groupId>
+	  <version>2.7-VDS-A-SNAPSHOT</version>
+	  <relativePath>../../pom.xml</relativePath>
+	</parent>
+	
+	<groupId>com.consol.citrus</groupId>
+	<artifactId>citrus-selenium</artifactId>
+	<name>citrus-selenium</name>
+  
+	<properties>
+		<selenium.version>3.0.1</selenium.version>
+		<websocket-client.version>9.3.11.v20160721</websocket-client.version>
+		<htmlunit-driver.version>2.23.2</htmlunit-driver.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.consol.citrus</groupId>
+			<artifactId>citrus-core</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+	      <groupId>com.consol.citrus.model</groupId>
+	      <artifactId>citrus-model-selenium</artifactId>
+	      <version>${project.version}</version>
+	    </dependency>
+
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
+			<version>${selenium.version}</version>
+			<exclusions>
+				<exclusion>
+				    <groupId>org.eclipse.jetty.websocket</groupId>
+				    <artifactId>websocket-client</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty.websocket</groupId>
+			<artifactId>websocket-client</artifactId>
+			<version>${websocket-client.version}</version>
+		</dependency>
+	    <dependency>
+	        <groupId>org.seleniumhq.selenium</groupId>
+	        <artifactId>htmlunit-driver</artifactId>
+	        <version>${htmlunit-driver.version}</version>
+	    </dependency>
+	</dependencies>
+</project>

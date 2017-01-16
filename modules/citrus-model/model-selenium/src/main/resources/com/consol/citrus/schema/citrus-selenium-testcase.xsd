@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns="http://www.citrusframework.org/schema/selenium/testcase"
+  xmlns:core="http://www.citrusframework.org/schema/testcase"
+  targetNamespace="http://www.citrusframework.org/schema/selenium/testcase"
+  elementFormDefault="qualified"
+  attributeFormDefault="unqualified">
+  
+  <xs:simpleType name="ByEnum">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="id"/>
+      <xs:enumeration value="className"/>
+      <xs:enumeration value="linkText"/>
+      <xs:enumeration value="cssSelector"/>
+      <xs:enumeration value="name"/>
+      <xs:enumeration value="tagName"/>
+      <xs:enumeration value="xpath"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="WebElementType">
+    <xs:attribute name="byId" type="xs:string"/>
+    <xs:attribute name="byName" type="xs:string"/>
+    <xs:attribute name="byTagName" type="xs:string"/>
+    <xs:attribute name="byCssSelector" type="xs:string"/>
+    <xs:attribute name="byClassName" type="xs:string"/>
+    <xs:attribute name="byXpath" type="xs:string"/>
+    <xs:attribute name="byXpathFromParam" type="xs:string"/>
+    <xs:attribute name="byLinkText" type="xs:string"/>
+  </xs:complexType>
+
+  <xs:complexType name="ValidationType">
+  		<xs:attribute name="description" type="xs:string"/>
+    	<xs:attribute name="by" type="ByEnum" use="required"/>
+    	<xs:attribute name="select" type="xs:string" use="required"/>
+    	<xs:attribute name="value" type="xs:string"/>
+  </xs:complexType>
+
+  <xs:complexType name="StartActionType">
+  	<xs:attribute name="url" type="xs:string" use="required"/>
+  </xs:complexType>
+  
+  <xs:complexType name="StopActionType" >
+    	<xs:attribute name="description" type="xs:string"/>
+  </xs:complexType>
+
+  <xs:complexType name="GotoActionType">
+  	<xs:attribute name="url" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="ValidateActionType">
+    <xs:sequence>
+      <xs:element name="element" type="ValidationType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="SwitchWindowActionType">
+    <xs:attribute name="urlpart" type="xs:string"/>
+    <xs:attribute name="numWindows" type="xs:string"/>
+  </xs:complexType>
+  
+  <xs:complexType name="VerifyUrlActionType">
+    <xs:attribute name="path" type="xs:string" use="required"/>
+  </xs:complexType>
+  
+  <xs:complexType name="VerifyTitleActionType">
+    <xs:attribute name="title" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="HoverActionType">
+    <xs:attribute name="byId" type="xs:string"/>
+        <xs:attribute name="byName" type="xs:string"/>
+        <xs:attribute name="byTagName" type="xs:string"/>
+        <xs:attribute name="byCssSelector" type="xs:string"/>
+        <xs:attribute name="byClassName" type="xs:string"/>
+        <xs:attribute name="byXpath" type="xs:string"/>
+        <xs:attribute name="byLinkText" type="xs:string"/>
+  </xs:complexType>
+  
+  <xs:complexType name="ScreenshotActionType">
+    <xs:attribute name="step" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="ClickActionType">
+    <xs:attribute name="byId" type="xs:string"/>
+    <xs:attribute name="byName" type="xs:string"/>
+    <xs:attribute name="byTagName" type="xs:string"/>
+    <xs:attribute name="byCssSelector" type="xs:string"/>
+    <xs:attribute name="byClassName" type="xs:string"/>
+    <xs:attribute name="byXpath" type="xs:string"/>
+    <xs:attribute name="byXpathFromParam" type="xs:string"/>
+    <xs:attribute name="byLinkText" type="xs:string"/>
+    <xs:attribute name="closing" type="xs:string"/>
+  </xs:complexType>
+
+  <xs:complexType name="GetAttributeActionType">
+    <xs:attribute name="byId" type="xs:string"/>
+        <xs:attribute name="byName" type="xs:string"/>
+        <xs:attribute name="byTagName" type="xs:string"/>
+        <xs:attribute name="byCssSelector" type="xs:string"/>
+        <xs:attribute name="byClassName" type="xs:string"/>
+        <xs:attribute name="byXpath" type="xs:string"/>
+        <xs:attribute name="byXpathFromParam" type="xs:string"/>
+        <xs:attribute name="byLinkText" type="xs:string"/>
+        <xs:attribute name="variable" type="xs:string"/>
+        <xs:attribute name="attribute" type="xs:string"/>
+  </xs:complexType>
+  
+  <xs:complexType name="GetPageSourceActionType">
+    <xs:attribute name="variable" type="xs:string"/>
+  </xs:complexType>
+  
+  <xs:complexType name="GetCurrentUrlActionType">
+    <xs:attribute name="variable" type="xs:string"/>
+  </xs:complexType>
+
+  <xs:complexType name="SetInputActionType">
+    <xs:sequence>
+          <xs:element name="field" minOccurs="1" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:complexContent>
+                <xs:extension base="WebElementType">
+                  <xs:attribute name="value" type="xs:string" use="required"/>
+                </xs:extension>
+              </xs:complexContent>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+  </xs:complexType>
+
+  <xs:simpleType name="BrowserActionTypeEnum">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="acceptAlertBox"/>
+      <xs:enumeration value="cancelAlertBox"/>
+      <xs:enumeration value="verifyAlertBoxIsPresent"/>
+      <xs:enumeration value="verifyAlertBoxIsAbsent"/>
+      <xs:enumeration value="clearBrowserCache"/>
+      <xs:enumeration value="navigateBack"/>
+      <xs:enumeration value="navigateForward"/>
+      <xs:enumeration value="refresh"/>
+      <xs:enumeration value="takeScreenshot"/>
+      <xs:enumeration value="newWindow"/>
+      <xs:enumeration value="closeWindow"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="BrowserActionType">
+    <xs:attribute name="action" type="BrowserActionTypeEnum" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="GotoFrameActionType">
+    <xs:attribute name="frame" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="GetCookieActionType">
+    <xs:attribute name="cookie" type="xs:string" use="required"/>
+        <xs:attribute name="variable" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="SetCookieActionType">
+    <xs:attribute name="cookie" type="xs:string" use="required"/>
+        <xs:attribute name="value" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="DelCookieActionType">
+    <xs:attribute name="cookie" type="xs:string" use="required"/>
+  </xs:complexType>
+  
+  <xs:complexType name="ExtractActionType">
+    <xs:choice>
+          <xs:element name="element" minOccurs="0" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:complexContent>
+                <xs:extension base="WebElementType">
+                  <xs:attribute name="variable" type="xs:string" use="required"/>
+                  <xs:attribute name="attribute" type="xs:string" use="optional"/>
+                </xs:extension>
+              </xs:complexContent>
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+  </xs:complexType>
+
+  <xs:complexType name="ExtractListActionType">
+    <xs:choice>
+          <xs:element name="element" minOccurs="0" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:complexContent>
+                <xs:extension base="WebElementType">
+                  <xs:attribute name="variable" type="xs:string" use="required"/>
+                  <xs:attribute name="attribute" type="xs:string" use="optional"/>
+                </xs:extension>
+              </xs:complexContent>
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+  </xs:complexType>
+  
+  <xs:element name="goto" type="GotoActionType"/>
+  <xs:element name="start" type="StartActionType"/>
+  <xs:element name="stop" type="StopActionType"/>
+  <xs:element name="hover" type="HoverActionType"/>
+  <xs:element name="screenshot" type="ScreenshotActionType"/>
+  <xs:element name="click" type="ClickActionType"/>
+  <xs:element name="getAttribute" type="GetAttributeActionType"/>
+  <xs:element name="setInput" type="SetInputActionType"/>
+  <xs:element name="validate" type="ValidateActionType"/>
+  <xs:element name="browser" type="BrowserActionType"/>
+  <xs:element name="extract" type="ExtractActionType"/>
+  <xs:element name="extractList" type="ExtractListActionType"/>
+  <xs:element name="gotoFrame" type="GotoFrameActionType"/>
+  <xs:element name="getCookie" type="GetCookieActionType"/>
+  <xs:element name="setCookie" type="SetCookieActionType"/>
+  <xs:element name="delCookie" type="DelCookieActionType"/>
+  <xs:element name="selectOption" type="SetInputActionType"/>
+  <xs:element name="verifyUrl" type="VerifyUrlActionType"/>
+  <xs:element name="switchWindow" type="SwitchWindowActionType"/>
+  <xs:element name="getPagesource" type="GetPageSourceActionType"/>
+  <xs:element name="getCurrentUrl" type="GetCurrentUrlActionType"/>
+  <xs:element name="verifyTitle" type="VerifyTitleActionType"/>
+</xs:schema>
